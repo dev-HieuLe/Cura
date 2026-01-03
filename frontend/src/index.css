@@ -1,0 +1,25 @@
+@import "tailwindcss";
+
+.title {
+  @apply text-2xl font-bold text-center;
+}
+
+.input {
+  @apply w-full border rounded p-3 focus:outline-none focus:ring;
+}
+
+.primary-btn {
+  @apply bg-black text-white px-4 py-2 rounded;
+}
+
+.ghost-btn {
+  @apply text-gray-500;
+}
+
+.actions {
+  @apply flex justify-between mt-6;
+}
+
+.card-btn {
+  @apply border rounded-lg py-6 text-lg font-medium hover:bg-black hover:text-white transition;
+}
