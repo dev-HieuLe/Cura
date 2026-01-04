@@ -104,7 +104,7 @@ export default function Home() {
   const submit = async () => {
     setLoading(true);
 
-    const res = await fetch("http://localhost:8080/api/recommend", {
+    const res = await fetch(`${import.meta.env.VITE_API_URL}/api/recommend`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -134,7 +134,7 @@ export default function Home() {
     <>
       <Navbar onGoHome={goHome} />
 
-      <div className="min-h-screen w-full bg-gray-50 overflow-y-auto mt-20">
+      <div className="min-h-screen w-full bg-gray-50 overflow-y-auto mt-15">
         {showMedicalAlert && <MedicalAlert onClose={closeMedicalAlert} />}
 
         <div className="w-full min-h-screen bg-white p-8 flex justify-center">
@@ -185,12 +185,15 @@ export default function Home() {
                         onChange={(e) =>
                           setForm({ ...form, age: e.target.value })
                         }
-                        className="w-full"
+                        className="w-full h-2 bg-red-300 rounded-lg appearance-none
+                     range-thumb:bg-red-500 range-thumb:h-5 range-thumb:w-5
+                     range-thumb:rounded-full range-thumb:shadow-md
+                     range-thumb:cursor-pointer"
                       />
                     </div>
                   </div>
 
-                  <div className="actions">
+                  <div className="actions mt-6 flex justify-between">
                     <button onClick={back} className="ghost-btn">
                       Back
                     </button>
@@ -236,39 +239,65 @@ export default function Home() {
                     <HeartPulse size={20} /> Describe your health concern
                   </h1>
 
-                  <div className="mt-6 flex justify-center">
+                  <div className="mt-6 flex flex-col items-center w-full max-w-xl mx-auto">
                     <textarea
-                      className="input h-40 w-full max-w-xl"
+                      className="input h-40 w-full"
                       placeholder="Describe how you feel, what you want to improve..."
-                      onChange={(e) =>
-                        setForm({ ...form, problem: e.target.value })
-                      }
+                      value={form.problem}
+                      onChange={(e) => {
+                        const words = e.target.value
+                          .split(/\s+/)
+                          .filter(Boolean);
+                        if (words.length <= 100) {
+                          setForm({ ...form, problem: e.target.value });
+                        } else {
+                          setForm({
+                            ...form,
+                            problem: words.slice(0, 100).join(" "),
+                          });
+                        }
+                      }}
                     />
+                    <p className="text-sm text-gray-500 mt-2 self-end">
+                      {form.problem.split(/\s+/).filter(Boolean).length}/100
+                      words
+                    </p>
                   </div>
 
-                  <div className="actions">
+                  <div className="actions mt-6 flex justify-between">
                     <button onClick={back} className="ghost-btn">
                       Back
                     </button>
-                    <button onClick={submit} className="primary-btn">
+                    <button
+                      onClick={() => {
+                        const trimmed = form.problem.trim();
+                        if (!trimmed) {
+                          alert(
+                            "Please describe your health concern before continuing."
+                          );
+                          return;
+                        }
+                        submit();
+                      }}
+                      className="primary-btn"
+                    >
                       {loading ? "Analyzing..." : "Get Recommendations"}
                     </button>
-                    {/* Loader */}
-
-                    <AnimatePresence>
-                      {loading && (
-                        <motion.div
-                          key="loader"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          className="mt-10"
-                        >
-                          <MedicineLoader />
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
                   </div>
+
+                  <AnimatePresence>
+                    {loading && (
+                      <motion.div
+                        key="loader"
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="mt-10"
+                      >
+                        <MedicineLoader />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </StepContainer>
               )}
 
@@ -279,13 +308,13 @@ export default function Home() {
                     <Pill size={22} /> Your Recommendations
                   </h1>
 
-                  <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  <div className="mt-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 auto-rows-fr">
                     {results.map((r, i) => (
                       <motion.div
                         key={i}
                         whileHover={{ y: -8, scale: 1.03 }}
                         transition={{ type: "spring", stiffness: 260 }}
-                        className="relative rounded-2xl bg-gray-50 p-4 shadow-sm hover:shadow-xl"
+                        className="relative rounded-2xl bg-gray-50 p-4 shadow-sm hover:shadow-xl min-h-[365px] h-full"
                       >
                         <PdfThumbnail id={r.id} />
 
@@ -301,7 +330,7 @@ export default function Home() {
                           href={r.labelUrl}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="absolute bottom-4 right-5 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
+                          className="absolute right-5 bottom-5 text-sm font-medium text-gray-600 hover:text-gray-900 transition"
                         >
                           View Info →
                         </a>
@@ -310,7 +339,7 @@ export default function Home() {
                   </div>
 
                   {parsedAdvice && (
-                    <div className="mt-16 max-w-4xl mx-auto">
+                    <div className="mt-26 max-w-4xl mx-auto">
                       <div className="rounded-2xl border border-gray-200 bg-white p-8 shadow-sm">
                         <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                           <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-50 text-blue-600 text-sm font-bold">
@@ -320,11 +349,13 @@ export default function Home() {
                         </h3>
 
                         <div className="mt-4 text-gray-700 leading-relaxed text-sm whitespace-pre-line">
-                          {parsedAdvice}
+                          "{parsedAdvice}"
                         </div>
 
                         <p className="mt-6 text-xs text-gray-400">
-                          ⚠️ Educational only. Not medical advice.
+                          ⚠️ For informational purposes only. Consult a
+                          healthcare professional for personalized advice if
+                          have medical concerns.
                         </p>
                       </div>
                     </div>

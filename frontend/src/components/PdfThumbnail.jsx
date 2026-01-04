@@ -7,7 +7,7 @@ export default function PdfThumbnail({ id }) {
     );
   }
 
-  const pdfUrl = `http://localhost:8080/api/pdf/${id}`;
+  const pdfUrl = `${import.meta.env.VITE_API_URL}/api/pdf/${id}`;
 
   return (
     <div className="w-full h-52 rounded-xl overflow-hidden bg-white border">
