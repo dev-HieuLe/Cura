@@ -1,12 +1,12 @@
 import dotenv from "dotenv";
-dotenv.config(); // MUST be first line
+dotenv.config();
 
 import app from "./app.js";
-import { loadAllCSVs } from "./services/csv.service.js";
+import { loadAllFromDB } from "./services/db.service.js"; // <-- switch here
 
 const PORT = 8080;
 
 (async () => {
-  await loadAllCSVs();
+  await loadAllFromDB(); // load all data first of.
   app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 })();

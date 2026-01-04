@@ -1,4 +1,5 @@
-import { DB } from "./csv.service.js";
+// services/recommender.service.js
+import { DB } from "./db.service.js";
 
 export function recommendSupplements({
   nutrients = [],
@@ -28,8 +29,8 @@ export function recommendSupplements({
       if (text.includes(c.toLowerCase())) score += 1;
     });
 
-    if (gender) {
-      if (text.includes(gender.toLowerCase())) score += 1;
+    if (gender && text.includes(gender.toLowerCase())) {
+      score += 1;
     }
 
     if (age && age < 18 && text.includes("adult")) continue;

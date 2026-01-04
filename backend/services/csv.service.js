@@ -1,66 +1,68 @@
-import fs from "fs";
-import path from "path";
-import csv from "csv-parser";
+//USING CSV --> DB BECAUSE CSV TOO HEAVY FOR SERVER DEPLOY
 
-const dataDir = "./data";
+// import fs from "fs";
+// import path from "path";
+// import csv from "csv-parser";
 
-export const DB = {
-  products: {},
-};
+// const dataDir = "./data";
 
-function loadCSV(filename) {
-  return new Promise((resolve) => {
-    const results = [];
-    fs.createReadStream(path.join(dataDir, filename))
-      .pipe(csv())
-      .on("data", (data) => results.push(data))
-      .on("end", () => resolve(results));
-  });
-}
+// export const DB = {
+//   products: {},
+// };
 
-export async function loadAllCSVs() {
-  const [label1, label2, ingredients1, ingredients2, overview1, overview2] =
-    await Promise.all([
-      loadCSV("LabelStatements_1.csv"),
-      loadCSV("LabelStatements_2.csv"),
-      loadCSV("OtherIngredients_1.csv"),
-      loadCSV("OtherIngredients_2.csv"),
-      loadCSV("ProductOverview_1.csv"),
-      loadCSV("ProductOverview_2.csv"),
-    ]);
+// function loadCSV(filename) {
+//   return new Promise((resolve) => {
+//     const results = [];
+//     fs.createReadStream(path.join(dataDir, filename))
+//       .pipe(csv())
+//       .on("data", (data) => results.push(data))
+//       .on("end", () => resolve(results));
+//   });
+// }
 
-  const all = [...overview1, ...overview2];
+// export async function loadAllCSVs() {
+//   const [label1, label2, ingredients1, ingredients2, overview1, overview2] =
+//     await Promise.all([
+//       loadCSV("LabelStatements_1.csv"),
+//       loadCSV("LabelStatements_2.csv"),
+//       loadCSV("OtherIngredients_1.csv"),
+//       loadCSV("OtherIngredients_2.csv"),
+//       loadCSV("ProductOverview_1.csv"),
+//       loadCSV("ProductOverview_2.csv"),
+//     ]);
 
-  all.forEach((p) => {
-    const id = p["DSLD ID"];
+//   const all = [...overview1, ...overview2];
 
-    DB.products[id] = {
-      id,
-      name: p["Product Name"],
-      brand: p["Brand Name"],
-      suggestedUse: p["Suggested Use"],
-      ingredients: [],
-      formulations: [],
-      pdfUrl: `https://api.ods.od.nih.gov/dsld/s3/pdf/${id}.pdf`,
-      labelUrl: `https://dsld.od.nih.gov/label/${id}`,
-    };
-  });
+//   all.forEach((p) => {
+//     const id = p["DSLD ID"];
 
-  [...ingredients1, ...ingredients2].forEach((i) => {
-    const product = DB.products[i["DSLD ID"]];
-    if (product) {
-      product.ingredients.push(i["Other Ingredients"]);
-    }
-  });
+//     DB.products[id] = {
+//       id,
+//       name: p["Product Name"],
+//       brand: p["Brand Name"],
+//       suggestedUse: p["Suggested Use"],
+//       ingredients: [],
+//       formulations: [],
+//       pdfUrl: `https://api.ods.od.nih.gov/dsld/s3/pdf/${id}.pdf`,
+//       labelUrl: `https://dsld.od.nih.gov/label/${id}`,
+//     };
+//   });
 
-  [...label1, ...label2].forEach((l) => {
-    if (l["Statement Type"] === "Formulation") {
-      const product = DB.products[l["DSLD ID"]];
-      if (product) {
-        product.formulations.push(l["Statement"]);
-      }
-    }
-  });
+//   [...ingredients1, ...ingredients2].forEach((i) => {
+//     const product = DB.products[i["DSLD ID"]];
+//     if (product) {
+//       product.ingredients.push(i["Other Ingredients"]);
+//     }
+//   });
 
-  console.log(`✅ Loaded ${Object.keys(DB.products).length} products`);
-}
+//   [...label1, ...label2].forEach((l) => {
+//     if (l["Statement Type"] === "Formulation") {
+//       const product = DB.products[l["DSLD ID"]];
+//       if (product) {
+//         product.formulations.push(l["Statement"]);
+//       }
+//     }
+//   });
+
+//   console.log(`✅ Loaded ${Object.keys(DB.products).length} products`);
+// }
