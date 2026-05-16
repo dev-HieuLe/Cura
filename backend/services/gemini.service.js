@@ -1,19 +1,23 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import OpenAI from "openai";
 
-let model = null;
+let client = null;
 
-function getModel() {
-  if (!process.env.GEMINI_API_KEY) {
-    throw new Error("GEMINI_API_KEY is missing");
+function getClient() {
+  if (!process.env.DEEPINFRA_API_KEY) {
+    throw new Error("DEEPINFRA_API_KEY is missing");
   }
 
-  if (!model) {
-    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
+  if (!client) {
+    client = new OpenAI({
+      baseURL: "https://api.deepinfra.com/v1/openai",
+      apiKey: process.env.DEEPINFRA_API_KEY,
+    });
   }
 
-  return model;
+  return client;
 }
+
+const MODEL = "deepseek-ai/DeepSeek-V4-Flash";
 
 export async function parseUserText(text) {
   const prompt = `
@@ -85,11 +89,13 @@ Text:
 `;
 
   try {
-    const model = getModel();
-    const result = await model.generateContent(prompt);
+    const openai = getClient();
+    const completion = await openai.chat.completions.create({
+      model: MODEL,
+      messages: [{ role: "user", content: prompt }],
+    });
 
-    const clean = result.response
-      .text()
+    const clean = completion.choices[0].message.content
       .replace(/```json|```/g, "")
       .trim();
     const parsed = JSON.parse(clean);
@@ -102,7 +108,7 @@ Text:
       advice: typeof parsed.advice === "string" ? parsed.advice : "",
     };
   } catch (err) {
-    console.error("❌ Gemini parsing error:", err.message);
+    console.error("❌ DeepInfra parsing error:", err.message);
     return {
       intent: "medical",
       nutrients: [],
